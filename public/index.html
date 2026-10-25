@@ -1,0 +1,951 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0f766e">
+<meta name="color-scheme" content="light dark">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Familia">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<title>Familia</title>
+<style>
+:root{--bg:#f3f7f6;--card:#fff;--ink:#12302c;--muted:#5d7571;--pri:#0f766e;--acc:#f59e0b;--ok:#16a34a;--bad:#dc2626;--line:#dce7e4;--r:18px}
+@media (prefers-color-scheme:dark){:root{--bg:#0d1514;--card:#15221f;--ink:#e6f2ef;--muted:#93aaa5;--line:#243531}}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);font:16px/1.4 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+body{overscroll-behavior:none}
+.hidden{display:none!important}
+button{font:inherit}
+.view{position:fixed;inset:0;display:flex;flex-direction:column;background:var(--bg)}
+.bar{display:flex;align-items:center;gap:8px;padding:calc(10px + env(safe-area-inset-top)) 10px 10px 16px;background:var(--pri);color:#fff}
+.bar .grow{flex:1;min-width:0}
+.title{font-weight:700;font-size:20px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sub{font-size:13px;opacity:.9}
+.icon-btn{width:46px;height:46px;border-radius:50%;border:0;background:transparent;color:inherit;display:grid;place-items:center;cursor:pointer;flex:none}
+.icon-btn:active{background:rgba(255,255,255,.2)}
+.scroll{flex:1;overflow:auto;-webkit-overflow-scrolling:touch}
+.pad{padding:16px 16px calc(28px + env(safe-area-inset-bottom));max-width:640px;margin:0 auto;width:100%}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:16px;margin-bottom:14px}
+.card h2{margin:0 0 8px;font-size:18px}
+.card p{margin:6px 0;overflow-wrap:anywhere}
+h1{margin:6px 0 4px;font-size:30px}
+.lead{color:var(--muted);margin:0 0 18px;font-size:17px}
+.logo{width:72px;height:72px;border-radius:20px;background:var(--pri);color:#fff;display:grid;place-items:center;margin-top:10px}
+label{display:block;font-weight:600;margin:10px 0 0}
+input,textarea{width:100%;font:inherit;font-size:16px;padding:12px 14px;border-radius:12px;border:1px solid var(--line);background:var(--bg);color:var(--ink);margin-top:6px}
+textarea{resize:none}
+.btn{min-height:48px;padding:0 18px;border-radius:14px;border:1px solid var(--line);background:var(--card);color:var(--ink);font-weight:600;cursor:pointer;margin-top:12px}
+.btn.primary{background:var(--pri);border-color:var(--pri);color:#fff}
+.btn.danger{color:var(--bad);border-color:var(--bad)}
+.btn.block{width:100%}
+.row{display:flex;gap:10px;flex-wrap:wrap}
+.row .btn{flex:1}
+.err{color:var(--bad);min-height:1.2em;margin:8px 0 0;font-size:14px}
+.muted{color:var(--muted);font-size:14px}
+.who{display:grid;gap:10px;margin-top:10px}
+.who .btn{margin:0;text-align:left;display:flex;align-items:center;gap:12px}
+.chip{font-size:12px;font-weight:700;padding:5px 10px;border-radius:999px;background:rgba(255,255,255,.2);border:0;color:#fff;cursor:pointer;white-space:nowrap}
+.chip.online{background:#22c55e;color:#04210f}
+.chip.offline,.chip.nolib,.chip.taken{background:#fecaca;color:#7f1d1d}
+.contact{display:flex;align-items:center;gap:10px;background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:12px;margin-bottom:12px}
+.c-main{flex:1;min-width:0;display:flex;align-items:center;gap:12px;background:none;border:0;text-align:left;color:inherit;cursor:pointer;padding:0}
+.c-txt{min-width:0;flex:1}
+.c-name{font-weight:700;font-size:18px;display:flex;align-items:center;gap:8px}
+.c-stat{font-size:13px;color:var(--muted);display:flex;align-items:center;gap:6px}
+.dot{width:9px;height:9px;border-radius:50%;background:#9db0ac;display:inline-block;flex:none}
+.dot.on{background:var(--ok)}
+.c-last{font-size:14px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:2px}
+.avatar{width:54px;height:54px;border-radius:50%;display:grid;place-items:center;color:#fff;font-weight:700;font-size:22px;flex:none}
+.avatar.big{width:124px;height:124px;font-size:54px}
+.round{width:50px;height:50px;border-radius:50%;border:0;display:grid;place-items:center;color:#fff;cursor:pointer;flex:none}
+.round.call{background:var(--ok)}
+.round.vid{background:var(--pri)}
+.badge{background:var(--acc);color:#000;border-radius:999px;font-size:12px;font-weight:800;padding:1px 8px}
+.msgs{flex:1;overflow:auto;padding:12px;display:flex;flex-direction:column;gap:6px;-webkit-overflow-scrolling:touch}
+.bubble{max-width:82%;padding:8px 12px;border-radius:16px;overflow-wrap:anywhere}
+.bubble.me{align-self:flex-end;background:var(--pri);color:#fff;border-bottom-right-radius:4px}
+.bubble.them{align-self:flex-start;background:var(--card);border:1px solid var(--line);border-bottom-left-radius:4px}
+.txt{white-space:pre-wrap}
+.meta{font-size:11px;opacity:.75;text-align:right;margin-top:2px}
+.day{align-self:center;font-size:12px;color:var(--muted);margin:8px 0 2px;text-transform:capitalize}
+.sys{align-self:center;font-size:13px;color:var(--muted);background:var(--card);border:1px solid var(--line);border-radius:999px;padding:4px 12px}
+.composer{display:flex;gap:8px;padding:8px 10px calc(8px + env(safe-area-inset-bottom));background:var(--card);border-top:1px solid var(--line);align-items:flex-end}
+.composer textarea{margin:0;max-height:120px;border-radius:20px}
+.send{width:48px;height:48px;border-radius:50%;border:0;background:var(--pri);color:#fff;display:grid;place-items:center;cursor:pointer;flex:none}
+.overlay{position:fixed;inset:0;z-index:50;background:#0b1211;color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;overflow:hidden}
+#rv{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;background:#000;transition:opacity .25s}
+#rv.off{opacity:0}
+.pip{position:absolute;right:14px;top:calc(14px + env(safe-area-inset-top));width:108px;height:148px;object-fit:cover;border-radius:14px;border:2px solid rgba(255,255,255,.55);background:#000;z-index:2}
+.pip.mirror{transform:scaleX(-1)}
+.call-mid{position:relative;z-index:1;text-align:center;padding:20px}
+.call-mid h2{margin:16px 0 4px;font-size:28px}
+.call-mid p{margin:0;font-size:18px;opacity:.85}
+.call-top{position:absolute;left:16px;top:calc(16px + env(safe-area-inset-top));z-index:2;text-shadow:0 1px 5px #000}
+.call-ctrls{position:absolute;left:0;right:0;bottom:calc(26px + env(safe-area-inset-bottom));display:flex;justify-content:center;gap:16px;z-index:3;flex-wrap:wrap}
+.cbtn{width:62px;height:62px;border-radius:50%;border:0;background:rgba(255,255,255,.2);color:#fff;display:grid;place-items:center;cursor:pointer;backdrop-filter:blur(6px)}
+.cbtn.on{background:#fff;color:#111}
+.cbtn.end{background:var(--bad)}
+.tapaudio{position:absolute;z-index:4;top:30%;background:#fff;color:#111;border:0;border-radius:999px;padding:12px 18px;font-weight:700}
+#incoming{background:linear-gradient(160deg,#0f766e,#0b1211)}
+.ring{animation:pulse 1.4s infinite}
+@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(255,255,255,.5)}100%{box-shadow:0 0 0 36px rgba(255,255,255,0)}}
+.inc-ctrls{display:flex;gap:56px;margin-top:56px}
+.inc-ctrls div{text-align:center;font-size:14px}
+.inc-ctrls .cbtn{width:74px;height:74px;margin:0 auto 8px;backdrop-filter:none}
+.cbtn.accept{background:var(--ok)}
+.sheet{position:fixed;inset:0;z-index:60;background:rgba(0,0,0,.5);display:flex;align-items:flex-end;justify-content:center}
+.sheet-in{background:var(--bg);width:100%;max-width:560px;max-height:92dvh;overflow:auto;border-radius:22px 22px 0 0;padding:18px 16px calc(24px + env(safe-area-inset-bottom))}
+.sheet-in h2{margin:0 0 6px}
+#toast{position:fixed;left:50%;bottom:calc(96px + env(safe-area-inset-bottom));transform:translateX(-50%) translateY(20px);background:rgba(17,28,26,.95);color:#fff;padding:10px 16px;border-radius:14px;z-index:100;max-width:90%;text-align:center;opacity:0;pointer-events:none;transition:.25s}
+#toast.show{opacity:1;transform:translateX(-50%)}
+.warn{background:#fef3c7;color:#78350f;border-radius:12px;padding:10px 14px;margin-bottom:14px;font-size:14px}
+</style>
+</head>
+<body>
+<noscript><p style="padding:20px">Esta aplicación necesita JavaScript.</p></noscript>
+
+<!-- ===== Configuración inicial ===== -->
+<section id="v-setup" class="view hidden">
+  <div class="scroll"><div class="pad">
+    <div class="logo"><span data-i="heart" data-s="40"></span></div>
+    <h1>Familia</h1>
+    <p class="lead">Llamadas, videollamadas y mensajes privados solo para tu familia. Gratis.</p>
+    <div id="insecure" class="warn hidden">Esta página debe abrirse desde una dirección <b>https://</b> para poder usar micrófono y cámara. Mira las instrucciones de publicación.</div>
+
+    <div id="joinBox" class="card hidden">
+      <h2>Te invitaron al grupo familiar</h2>
+      <p>¿Quién eres tú?</p>
+      <div id="whoList" class="who"></div>
+    </div>
+
+    <div id="createBox">
+      <div class="card">
+        <h2>Crear el grupo familiar</h2>
+        <label for="inMe">Tu nombre</label>
+        <input id="inMe" maxlength="20" autocomplete="off" placeholder="Ej: Papá">
+        <label for="inOthers">Nombres de tu familia (separados por coma)</label>
+        <input id="inOthers" autocomplete="off" placeholder="Ej: Mamá, Valentina">
+        <button id="btnCreate" class="btn primary block">Crear grupo</button>
+        <p class="err" id="setupErr"></p>
+      </div>
+      <div class="card">
+        <h2>¿Ya te enviaron un enlace?</h2>
+        <input id="inLink" autocomplete="off" placeholder="Pega aquí el enlace de invitación">
+        <button id="btnLink" class="btn block">Usar enlace</button>
+        <p class="err" id="linkErr"></p>
+      </div>
+    </div>
+    <p class="muted">Los mensajes se guardan solo en tu dispositivo. Las llamadas y mensajes van cifrados directamente entre ustedes.</p>
+  </div></div>
+</section>
+
+<!-- ===== Inicio ===== -->
+<section id="v-home" class="view hidden">
+  <header class="bar">
+    <div class="grow"><div class="title">Familia</div><div class="sub" id="meLine"></div></div>
+    <button id="chip" class="chip" aria-label="Estado de la conexión">Conectando…</button>
+    <button id="btnSettings" class="icon-btn" aria-label="Ajustes" data-i="sliders"></button>
+  </header>
+  <div class="scroll"><div class="pad">
+    <div id="insecure2" class="warn hidden">Para usar llamadas la página debe abrirse desde <b>https://</b>.</div>
+    <div id="inviteBox" class="card hidden">
+      <h2>Invita a tu familia</h2>
+      <p>Envíales este enlace una sola vez (por WhatsApp, por ejemplo). Quien lo tenga puede entrar al grupo, así que no lo compartas con nadie más.</p>
+      <div class="row">
+        <button id="btnShare" class="btn primary">Compartir enlace</button>
+        <button id="btnCopy" class="btn">Copiar</button>
+      </div>
+      <button id="btnInvDone" class="btn block">Ya lo envié</button>
+    </div>
+    <div id="installBox" class="card hidden">
+      <h2>Instalar en el teléfono o computador</h2>
+      <p id="installTxt">Ábrela como una app, sin la barra del navegador.</p>
+      <button id="btnInstall" class="btn primary block">Instalar</button>
+    </div>
+    <div id="pushBox" class="card hidden">
+      <h2>Recibir llamadas con la app cerrada</h2>
+      <p id="pushTxt">Actívalos para que te suene una notificación cuando te llamen, aunque la app esté cerrada.</p>
+      <button id="btnPush" class="btn primary block">Activar avisos de llamada</button>
+    </div>
+    <div id="contacts"></div>
+    <p class="muted" id="homeHint">Si la otra persona activó los avisos, le llegará una notificación para contestar aunque tenga la app cerrada. Sin avisos, debe tener la app abierta.</p>
+  </div></div>
+</section>
+
+<!-- ===== Chat ===== -->
+<section id="v-chat" class="view hidden">
+  <header class="bar">
+    <button id="btnBack" class="icon-btn" aria-label="Volver" data-i="back"></button>
+    <div class="grow"><div class="title" id="chName"></div><div class="sub" id="chStat"></div></div>
+    <button id="chCall" class="icon-btn" aria-label="Llamar" data-i="phone"></button>
+    <button id="chVid" class="icon-btn" aria-label="Videollamada" data-i="video"></button>
+  </header>
+  <div class="msgs" id="msgs"></div>
+  <div class="composer">
+    <textarea id="msgIn" rows="1" placeholder="Escribe un mensaje" aria-label="Mensaje"></textarea>
+    <button id="btnSend" class="send" aria-label="Enviar" data-i="send"></button>
+  </div>
+</section>
+
+<!-- ===== Llamada en curso ===== -->
+<div id="call" class="overlay hidden">
+  <video id="rv" autoplay playsinline></video>
+  <video id="lv" class="pip hidden" autoplay playsinline muted></video>
+  <div id="cTop" class="call-top hidden"><div style="font-size:20px;font-weight:700" id="cName2"></div><div id="cTimer"></div></div>
+  <div id="cMid" class="call-mid">
+    <div id="cAv" class="avatar big ring"></div>
+    <h2 id="cName"></h2>
+    <p id="cNote"></p>
+  </div>
+  <button id="tapAudio" class="tapaudio hidden">Toca para activar el sonido</button>
+  <div class="call-ctrls">
+    <button id="bMic" class="cbtn" aria-label="Silenciar micrófono" data-i="mic"></button>
+    <button id="bCam" class="cbtn" aria-label="Cámara" data-i="video"></button>
+    <button id="bFlip" class="cbtn" aria-label="Cambiar cámara" data-i="flip"></button>
+    <button id="bEnd" class="cbtn end" aria-label="Colgar" data-i="hangup" data-s="28"></button>
+  </div>
+</div>
+
+<!-- ===== Llamada entrante ===== -->
+<div id="incoming" class="overlay hidden">
+  <div id="iAv" class="avatar big ring"></div>
+  <h2 id="iName" style="font-size:30px;margin:18px 0 4px"></h2>
+  <p id="iKind" style="margin:0;font-size:18px;opacity:.9"></p>
+  <div class="inc-ctrls">
+    <div><button id="bDecline" class="cbtn end" aria-label="Rechazar" data-i="hangup" data-s="32"></button>Rechazar</div>
+    <div><button id="bAccept" class="cbtn accept" aria-label="Contestar" data-i="phone" data-s="32"></button>Contestar</div>
+  </div>
+</div>
+
+<!-- ===== Ajustes ===== -->
+<div id="settings" class="sheet hidden">
+  <div class="sheet-in">
+    <h2>Ajustes</h2>
+    <p class="muted" id="setMe"></p>
+    <div class="card">
+      <h2>Enlace de invitación</h2>
+      <input id="setLink" readonly>
+      <div class="row">
+        <button id="setShare" class="btn">Compartir</button>
+        <button id="setCopy" class="btn">Copiar</button>
+      </div>
+    </div>
+    <div class="card">
+      <h2>Avisos</h2>
+      <p class="muted">Muestra un aviso cuando llegue un mensaje o llamada con la app en segundo plano.</p>
+      <button id="setNotif" class="btn block">Activar avisos</button>
+    </div>
+    <div class="card">
+      <h2>Avanzado: servidor TURN propio</h2>
+      <p class="muted">Solo si las llamadas no conectan en algunas redes. Pega una lista JSON, por ejemplo: [{"urls":"turn:servidor:3478","username":"usuario","credential":"clave"}]. Déjalo vacío para usar los servidores públicos por defecto.</p>
+      <textarea id="setIce" rows="3" spellcheck="false"></textarea>
+      <button id="setIceSave" class="btn block">Guardar y reconectar</button>
+      <p class="err" id="iceErr"></p>
+    </div>
+    <div class="card">
+      <h2>Datos de este dispositivo</h2>
+      <button id="setClear" class="btn block">Borrar todos los mensajes</button>
+      <button id="setLeave" class="btn danger block">Salir del grupo en este dispositivo</button>
+    </div>
+    <button id="setClose" class="btn primary block">Cerrar</button>
+  </div>
+</div>
+
+<div id="toast" role="status" aria-live="polite"></div>
+
+<script>
+(() => {
+'use strict';
+
+/* ───────── utilidades ───────── */
+const $ = (s, r = document) => r.querySelector(s);
+const $$ = (s, r = document) => Array.from(r.querySelectorAll(s));
+const store = {
+  get(k, d) { try { const v = localStorage.getItem(k); return v === null ? d : JSON.parse(v); } catch (e) { return d; } },
+  set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} },
+  del(k) { try { localStorage.removeItem(k); } catch (e) {} }
+};
+function el(tag, cls, text) { const e = document.createElement(tag); if (cls) e.className = cls; if (text !== undefined) e.textContent = text; return e; }
+const slug = n => n.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z0-9]/g, '') || 'x';
+const cleanName = s => String(s || '').replace(/[,|#&?\/\\<>]/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 20);
+const rid = () => (crypto.randomUUID ? crypto.randomUUID() : Date.now().toString(36) + Math.random().toString(36).slice(2));
+const genCode = () => { const a = new Uint8Array(16); crypto.getRandomValues(a); return Array.from(a, b => (b % 36).toString(36)).join(''); };
+const fmtDur = ms => { const s = Math.max(0, Math.floor(ms / 1000)), h = Math.floor(s / 3600), m = Math.floor(s % 3600 / 60), x = s % 60; const p = n => String(n).padStart(2, '0'); return h ? `${h}:${p(m)}:${p(x)}` : `${p(m)}:${p(x)}`; };
+const hm = ts => new Date(ts).toLocaleTimeString('es', { hour: '2-digit', minute: '2-digit' });
+function dayLabel(ts) {
+  const d = new Date(ts), t = new Date(), y = new Date(); y.setDate(t.getDate() - 1);
+  const same = (a, b) => a.toDateString() === b.toDateString();
+  if (same(d, t)) return 'Hoy'; if (same(d, y)) return 'Ayer';
+  return d.toLocaleDateString('es', { weekday: 'long', day: 'numeric', month: 'long' });
+}
+let toastT;
+function toast(msg) { const t = $('#toast'); t.textContent = msg; t.classList.add('show'); clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove('show'), 3800); }
+
+/* ───────── iconos ───────── */
+const ICONS = {
+  phone: '<path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/>',
+  video: '<polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/>',
+  videoOff: '<path d="M16 16v1a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h2m5.66 0H14a2 2 0 0 1 2 2v3.34l1 1L23 7v10"/><line x1="1" y1="1" x2="23" y2="23"/>',
+  mic: '<path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/>',
+  micOff: '<line x1="1" y1="1" x2="23" y2="23"/><path d="M9 9v3a3 3 0 0 0 5.12 2.12M15 9.34V4a3 3 0 0 0-5.94-.6"/><path d="M17 16.95A7 7 0 0 1 5 12v-2m14 0v2a7 7 0 0 1-.11 1.23"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/>',
+  send: '<line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>',
+  back: '<line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/>',
+  sliders: '<line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/>',
+  flip: '<polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>',
+  heart: '<path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>'
+};
+ICONS.hangup = '<g transform="rotate(135 12 12)">' + ICONS.phone + '</g>';
+const svg = (name, size = 24) => `<svg viewBox="0 0 24 24" width="${size}" height="${size}" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICONS[name]}</svg>`;
+function paintIcons(root = document) { $$('[data-i]', root).forEach(e => { e.innerHTML = svg(e.dataset.i, +e.dataset.s || 24); }); }
+const setIcon = (sel, name) => { const e = $(sel); const s = e.dataset.s || 24; e.innerHTML = svg(name, +s); };
+
+/* ───────── estado ───────── */
+const PEER_SRC = ['peerjs.min.js', 'https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js', 'https://cdn.jsdelivr.net/npm/peerjs@1.5.4/dist/peerjs.min.js'];
+const COLORS = ['#0f766e', '#b45309', '#7c3aed', '#be123c', '#1d4ed8', '#4d7c0f'];
+let cfg = null, ids = {}, peer = null, view = '', chatWith = null, status = 'connecting';
+const conns = {}, online = {}, connecting = {}, hist = {};
+let cur = null, inc = null;
+const cancelled = new Set();
+let gid = '';
+let restartT = null, reT = null, idRetries = 0, deferredInstall = null, pendingInvite = null;
+
+const others = () => cfg.members.filter(m => m !== cfg.me);
+const pid = n => ids[n];
+const nameByPid = id => cfg.members.find(m => ids[m] === id);
+const connOpen = n => !!(conns[n] && conns[n].open);
+const colorOf = n => { const list = (cfg || pendingInvite || { members: [] }).members; return COLORS[Math.max(0, list.indexOf(n)) % COLORS.length]; };
+function avatar(n, big) { const a = el('div', 'avatar' + (big ? ' big' : ''), n.charAt(0).toUpperCase()); a.style.background = colorOf(n); return a; }
+
+async function computeIds() {
+  ids = {}; const enc = new TextEncoder();
+  for (const m of cfg.members) {
+    const buf = await crypto.subtle.digest('SHA-256', enc.encode(cfg.code + ':' + slug(m)));
+    ids[m] = 'f' + Array.from(new Uint8Array(buf), b => b.toString(16).padStart(2, '0')).join('').slice(0, 40);
+  }
+  const gb = await crypto.subtle.digest('SHA-256', enc.encode('push:' + cfg.code));
+  gid = Array.from(new Uint8Array(gb), b => b.toString(16).padStart(2, '0')).join('');
+}
+
+/* ───────── invitaciones ───────── */
+function parseInvite(str) {
+  try {
+    const i = String(str).indexOf('#'); if (i < 0) return null;
+    const p = new URLSearchParams(str.slice(i + 1));
+    const code = p.get('g');
+    const names = (p.get('m') || '').split(',').map(cleanName).filter(Boolean);
+    if (!code || !/^[a-z0-9]{12,40}$/.test(code)) return null;
+    if (names.length < 2 || names.length > 6) return null;
+    if (new Set(names.map(slug)).size !== names.length) return null;
+    return { code, members: names };
+  } catch (e) { return null; }
+}
+const inviteLink = () => `${location.origin}${location.pathname}#g=${cfg.code}&m=${encodeURIComponent(cfg.members.join(','))}`;
+async function shareLink() {
+  const url = inviteLink();
+  if (navigator.share) { try { await navigator.share({ title: 'Familia', text: 'Entra a nuestro grupo familiar privado:', url }); return; } catch (e) { if (e && e.name === 'AbortError') return; } }
+  copyLink();
+}
+async function copyLink() {
+  const url = inviteLink();
+  try { await navigator.clipboard.writeText(url); toast('Enlace copiado'); }
+  catch (e) { prompt('Copia este enlace:', url); }
+}
+
+/* ───────── vistas ───────── */
+function showView(v) {
+  view = v;
+  ['setup', 'home', 'chat'].forEach(x => $('#v-' + x).classList.toggle('hidden', x !== v));
+}
+function validateMembers(me, others) {
+  if (!me) return 'Escribe tu nombre.';
+  if (!others.length) return 'Escribe al menos un nombre de tu familia.';
+  const all = [me, ...others];
+  if (all.length > 6) return 'Máximo 6 personas.';
+  if (new Set(all.map(slug)).size !== all.length) return 'Los nombres deben ser distintos entre sí.';
+  return '';
+}
+function showJoin(inv) {
+  pendingInvite = inv; showView('setup');
+  $('#createBox').classList.add('hidden'); $('#joinBox').classList.remove('hidden');
+  const box = $('#whoList'); box.textContent = '';
+  inv.members.forEach(n => {
+    const b = el('button', 'btn'); b.append(avatar(n), el('span', '', n));
+    b.onclick = () => { cfg = { code: inv.code, members: inv.members, me: n, ice: [] }; store.set('fam.cfg', cfg); store.set('fam.inv', true); enterApp(); };
+    box.append(b);
+  });
+}
+
+function renderStatus() {
+  const chip = $('#chip');
+  const map = { connecting: 'Conectando…', online: 'Listo', offline: 'Sin conexión', nolib: 'Sin conexión', taken: 'Abierta en otro lado' };
+  chip.className = 'chip ' + status; chip.textContent = map[status] || status;
+}
+function setStatus(s) { status = s; renderStatus(); }
+
+function renderHome() {
+  if (!cfg) return;
+  $('#meLine').textContent = 'Eres ' + cfg.me;
+  const box = $('#contacts'); box.textContent = '';
+  others().forEach(n => {
+    const list = load(n), last = list.filter(m => !m.sys).slice(-1)[0], un = list.filter(m => m.new).length;
+    const card = el('div', 'contact');
+    const main = el('button', 'c-main'); main.setAttribute('aria-label', 'Abrir chat con ' + n);
+    const txt = el('div', 'c-txt');
+    const nm = el('div', 'c-name'); nm.append(el('span', '', n)); if (un) nm.append(el('span', 'badge', String(un)));
+    const st = el('div', 'c-stat'); const dot = el('span', 'dot' + (online[n] ? ' on' : '')); st.append(dot, document.createTextNode(online[n] ? 'En línea' : 'Sin conexión'));
+    txt.append(nm, st);
+    if (last) txt.append(el('div', 'c-last', (last.me ? 'Tú: ' : '') + last.text));
+    main.append(avatar(n), txt); main.onclick = () => openChat(n);
+    const bc = el('button', 'round call'); bc.setAttribute('aria-label', 'Llamar a ' + n); bc.innerHTML = svg('phone'); bc.onclick = () => startCall(n, false);
+    const bv = el('button', 'round vid'); bv.setAttribute('aria-label', 'Videollamada a ' + n); bv.innerHTML = svg('video'); bv.onclick = () => startCall(n, true);
+    card.append(main, bc, bv); box.append(card);
+  });
+  $('#inviteBox').classList.toggle('hidden', !!store.get('fam.inv', false));
+  updateBadge();
+}
+
+/* ───────── mensajes (almacenamiento local) ───────── */
+const KEY = n => 'fam.m.' + n;
+function load(n) { return hist[n] || (hist[n] = store.get(KEY(n), [])); }
+function save(n) { const a = load(n); if (a.length > 500) a.splice(0, a.length - 500); store.set(KEY(n), a); }
+function addSys(n, text) { load(n).push({ id: rid(), sys: true, text, ts: Date.now() }); save(n); renderHome(); if (chatWith === n) renderChat(true); }
+function updateBadge() {
+  if (!cfg) return;
+  const total = others().reduce((s, n) => s + load(n).filter(m => m.new).length, 0);
+  document.title = total ? `(${total}) Familia` : 'Familia';
+  try { if (navigator.setAppBadge) { total ? navigator.setAppBadge(total) : navigator.clearAppBadge(); } } catch (e) {}
+}
+const tick = m => m.st === 'delivered' ? '✓✓' : m.st === 'sent' ? '✓' : '🕓';
+
+function openChat(n) {
+  chatWith = n; showView('chat');
+  load(n).forEach(m => { m.new = false; }); save(n); updateBadge();
+  renderChat(true); renderHome();
+  try { history.pushState({ v: 'chat' }, ''); } catch (e) {}
+  if (matchMedia('(pointer:fine)').matches) setTimeout(() => $('#msgIn').focus(), 50);
+}
+function closeChat() { chatWith = null; showView('home'); renderHome(); }
+function renderChat(stick) {
+  if (!chatWith) return;
+  const n = chatWith, box = $('#msgs'), near = box.scrollHeight - box.scrollTop - box.clientHeight < 140;
+  $('#chName').textContent = n;
+  $('#chStat').textContent = online[n] ? 'En línea' : 'Sin conexión: se enviará cuando se conecte';
+  box.textContent = ''; let lastDay = '';
+  load(n).forEach(m => {
+    const d = dayLabel(m.ts); if (d !== lastDay) { lastDay = d; box.append(el('div', 'day', d)); }
+    if (m.sys) { box.append(el('div', 'sys', m.text)); return; }
+    const b = el('div', 'bubble ' + (m.me ? 'me' : 'them'));
+    b.append(el('div', 'txt', m.text), el('div', 'meta', hm(m.ts) + (m.me ? ' ' + tick(m) : '')));
+    box.append(b);
+  });
+  if (stick || near) box.scrollTop = box.scrollHeight;
+}
+function doSend() {
+  const inp = $('#msgIn'); const text = inp.value.trim(); if (!text || !chatWith) return;
+  const n = chatWith, m = { id: rid(), me: true, text: text.slice(0, 4000), ts: Date.now(), st: 'pending' };
+  load(n).push(m); transmit(n, m); save(n);
+  inp.value = ''; autoGrow(); renderChat(true); renderHome();
+  if (!connOpen(n)) { connectTo(n); toast(n + ' no está conectado: el mensaje se enviará cuando abra la app.'); }
+}
+function transmit(n, m) {
+  const c = conns[n];
+  if (c && c.open) { try { c.send({ t: 'msg', id: m.id, text: m.text, ts: m.ts }); if (m.st === 'pending') m.st = 'sent'; } catch (e) {} }
+}
+function flushOutbox(n) {
+  load(n).forEach(m => { if (m.me && !m.sys && m.st !== 'delivered') transmit(n, m); });
+  save(n); if (chatWith === n) renderChat(false);
+}
+function autoGrow() { const t = $('#msgIn'); t.style.height = 'auto'; t.style.height = Math.min(t.scrollHeight, 120) + 'px'; }
+
+/* ───────── avisos y sonidos ───────── */
+let actx = null;
+function audio() { if (!actx) { const C = window.AudioContext || window.webkitAudioContext; if (C) { try { actx = new C(); } catch (e) {} } } if (actx && actx.state === 'suspended') actx.resume().catch(() => {}); return actx; }
+function beep(freqs, dur, vol) {
+  const ctx = audio(); if (!ctx || ctx.state !== 'running') return;
+  const g = ctx.createGain(), t = ctx.currentTime;
+  g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(vol, t + 0.03); g.gain.setValueAtTime(vol, t + Math.max(0.04, dur - 0.06)); g.gain.linearRampToValueAtTime(0, t + dur);
+  g.connect(ctx.destination);
+  freqs.forEach(f => { const o = ctx.createOscillator(); o.type = 'sine'; o.frequency.value = f; o.connect(g); o.start(t); o.stop(t + dur); });
+}
+let ringInt = null;
+function ring(kind) {
+  stopRing();
+  const play = () => {
+    if (kind === 'in') { beep([523, 659], 0.35, 0.25); setTimeout(() => beep([523, 659], 0.35, 0.25), 450); try { navigator.vibrate && navigator.vibrate([300, 150, 300]); } catch (e) {} }
+    else beep([425], 1.0, 0.12);
+  };
+  play(); ringInt = setInterval(play, kind === 'in' ? 2200 : 3000);
+}
+function stopRing() { clearInterval(ringInt); ringInt = null; try { navigator.vibrate && navigator.vibrate(0); } catch (e) {} }
+document.addEventListener('pointerdown', () => audio(), { passive: true });
+
+async function notify(title, body, tag) {
+  if (!('Notification' in window) || Notification.permission !== 'granted' || !document.hidden) return;
+  try {
+    const reg = navigator.serviceWorker && await navigator.serviceWorker.getRegistration();
+    const opts = { body, tag, icon: 'icon-192.png', badge: 'icon-192.png', renotify: true, vibrate: [200, 100, 200] };
+    if (reg) reg.showNotification(title, opts); else new Notification(title, opts);
+  } catch (e) {}
+}
+
+/* ───────── conexión punto a punto ───────── */
+function loadScript(src) { return new Promise((res, rej) => { const s = document.createElement('script'); s.src = src; s.onload = res; s.onerror = () => { s.remove(); rej(new Error(src)); }; document.head.appendChild(s); }); }
+const PeerCtor = () => window.Peer || (window.peerjs && window.peerjs.Peer);
+async function ensurePeerLib() {
+  if (PeerCtor()) return true;
+  for (const u of PEER_SRC) { try { await loadScript(u); if (PeerCtor()) return true; } catch (e) {} }
+  return false;
+}
+
+async function startPeer() {
+  clearTimeout(restartT); clearTimeout(reT);
+  if (!cfg) return;
+  if (!(await ensurePeerLib())) { setStatus('nolib'); restartT = setTimeout(startPeer, 6000); return; }
+  if (!Object.keys(ids).length) await computeIds();
+  if (peer) { const old = peer; peer = null; try { old.destroy(); } catch (e) {} }
+  Object.keys(conns).forEach(k => delete conns[k]);
+  others().forEach(n => { online[n] = false; connecting[n] = false; });
+  renderHome();
+  setStatus('connecting');
+  const opts = { debug: 1 };
+  if (cfg.ice && cfg.ice.length) opts.config = { iceServers: [{ urls: 'stun:stun.l.google.com:19302' }, ...cfg.ice], sdpSemantics: 'unified-plan' };
+  let p;
+  try { p = new (PeerCtor())(pid(cfg.me), opts); } catch (e) { setStatus('offline'); restartT = setTimeout(startPeer, 5000); return; }
+  peer = p;
+
+  p.on('open', () => { if (peer !== p) return; idRetries = 0; setStatus('online'); pollConnections(); });
+  p.on('disconnected', () => { if (peer !== p) return; setStatus('offline'); scheduleReconnect(p, 2000); });
+  p.on('close', () => { if (peer !== p) return; setStatus('offline'); restartT = setTimeout(startPeer, 3000); });
+  p.on('error', err => {
+    if (peer !== p) return;
+    const t = err && err.type;
+    if (t === 'unavailable-id') {
+      if (++idRetries <= 8) { setStatus('connecting'); restartT = setTimeout(startPeer, 3000); }
+      else setStatus('taken');
+    } else if (t === 'peer-unavailable') {
+      if (cur && cur.state === 'calling' && String(err.message || '').includes(pid(cur.n))) {
+        if (!cur.pushed) { cur.pushed = true; pushTo(cur.n, 'call', cur.video); }
+        retryCall();
+      }
+    } else if (['network', 'server-error', 'socket-error', 'socket-closed'].includes(t)) {
+      setStatus('offline'); scheduleReconnect(p, 3000);
+    } else if (t === 'browser-incompatible') {
+      setStatus('nolib'); toast('Este navegador no es compatible con las llamadas.');
+    } else { console.warn('peer error', err); }
+  });
+  p.on('connection', conn => {
+    const n = nameByPid(conn.peer);
+    if (!n || n === cfg.me) { conn.on('open', () => { try { conn.close(); } catch (e) {} }); return; }
+    adopt(n, conn, false);
+  });
+  p.on('call', onIncomingCall);
+}
+function scheduleReconnect(p, ms) {
+  clearTimeout(reT);
+  reT = setTimeout(() => {
+    if (peer !== p) return;
+    if (p.destroyed) startPeer();
+    else if (p.disconnected) { try { p.reconnect(); } catch (e) { startPeer(); } }
+  }, ms);
+}
+function pollConnections() {
+  if (!peer || !peer.open || status === 'taken') return;
+  others().forEach(n => {
+    if (!connOpen(n)) { if (!connecting[n]) connectTo(n); return; }
+    // reintenta lo que siga sin confirmar (por si un acuse se perdió en una conexión duplicada)
+    if (load(n).some(m => m.me && !m.sys && m.st !== 'delivered' && Date.now() - m.ts > 4000)) flushOutbox(n);
+  });
+}
+function connectTo(n) {
+  if (!peer || !peer.open || connecting[n] || connOpen(n)) return;
+  let c; try { c = peer.connect(pid(n), { reliable: true, serialization: 'json' }); } catch (e) { return; }
+  connecting[n] = true; adopt(n, c, true);
+  setTimeout(() => { if (connecting[n] && conns[n] !== c) { connecting[n] = false; try { c.close(); } catch (e) {} } }, 10000);
+}
+function setOnline(n, b) { online[n] = b; renderHome(); if (chatWith === n) renderChat(false); }
+function adopt(n, conn, outgoing) {
+  conn.on('open', () => {
+    const old = conns[n];
+    if (old && old !== conn && old.open) {
+      // dos conexiones a la vez: ambos lados conservan la iniciada por el ID menor
+      const canonicalOutgoing = pid(cfg.me) < pid(n);
+      if (outgoing === canonicalOutgoing) { conns[n] = conn; try { old.close(); } catch (e) {} }
+      else { try { conn.close(); } catch (e) {} return; }
+    } else conns[n] = conn;
+    connecting[n] = false; setOnline(n, true); flushOutbox(n);
+  });
+  conn.on('data', d => onData(n, conn, d));
+  const gone = () => { if (conns[n] === conn) { delete conns[n]; setOnline(n, false); } connecting[n] = false; };
+  conn.on('close', gone); conn.on('error', gone);
+}
+const sendSig = (n, obj) => { const c = conns[n]; if (c && c.open) { try { c.send(obj); } catch (e) {} } };
+
+function onData(n, conn, d) {
+  if (!d || typeof d !== 'object') return;
+  if (d.t === 'msg') {
+    if (typeof d.id !== 'string' || d.id.length > 64 || typeof d.text !== 'string') return;
+    const list = load(n);
+    if (!list.some(m => m.id === d.id)) {
+      const now = Date.now();
+      const m = { id: d.id, me: false, text: d.text.slice(0, 4000), ts: Math.min(Number(d.ts) || now, now) };
+      const seen = view === 'chat' && chatWith === n && !document.hidden;
+      if (!seen) m.new = true;
+      list.push(m); list.sort((a, b) => a.ts - b.ts); save(n);
+      if (!seen) { updateBadge(); notify(n, m.text, 'msg-' + n); if (!document.hidden) { toast(`${n}: ${m.text.slice(0, 60)}`); beep([880], 0.12, 0.08); } }
+      renderHome(); if (chatWith === n) renderChat(true);
+    }
+    try { (connOpen(n) ? conns[n] : conn).send({ t: 'ack', id: d.id }); } catch (e) {}
+  } else if (d.t === 'ack') {
+    const m = load(n).find(x => x.id === d.id && x.me);
+    if (m && m.st !== 'delivered') { m.st = 'delivered'; save(n); if (chatWith === n) renderChat(false); }
+  } else callSignal(n, d);
+}
+
+/* ───────── llamadas ───────── */
+let timerInt = null, wake = null;
+function getMedia(video) {
+  return navigator.mediaDevices.getUserMedia({
+    audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true },
+    video: video ? { facingMode: 'user', width: { ideal: 640 }, height: { ideal: 480 }, frameRate: { ideal: 24, max: 30 } } : false
+  });
+}
+const stopStream = s => { try { s && s.getTracks().forEach(t => t.stop()); } catch (e) {} };
+function mediaError(e) {
+  const n = e && e.name;
+  if (n === 'NotAllowedError' || n === 'SecurityError') toast('Debes permitir el micrófono y la cámara. Toca el candado junto a la dirección del navegador.');
+  else if (n === 'NotFoundError') toast('No encontré micrófono o cámara en este dispositivo.');
+  else if (n === 'NotReadableError') toast('El micrófono o la cámara están siendo usados por otra aplicación.');
+  else toast('No pude acceder al micrófono o la cámara.');
+}
+async function getMediaWithFallback(video) {
+  try { return { stream: await getMedia(video), video }; }
+  catch (e) {
+    if (!video) throw e;
+    const s = await getMedia(false); toast('No pude usar la cámara: se hará solo con audio.'); return { stream: s, video: false };
+  }
+}
+async function startWake() { try { if ('wakeLock' in navigator && !wake) { wake = await navigator.wakeLock.request('screen'); wake.addEventListener('release', () => { wake = null; }); } } catch (e) {} }
+function releaseWake() { try { wake && wake.release(); } catch (e) {} wake = null; }
+
+async function startCall(n, video) {
+  if (cur || inc) { toast('Ya estás en una llamada.'); return; }
+  if (!navigator.mediaDevices || !window.isSecureContext) { toast('Para llamar, abre la app desde una dirección https://'); return; }
+  if (!peer || !peer.open) { toast('Todavía no hay conexión con el servidor. Espera unos segundos.'); return; }
+  let r; try { r = await getMediaWithFallback(video); } catch (e) { mediaError(e); return; }
+  if (cur || inc) { stopStream(r.stream); return; }
+  const cid = rid().slice(0, 12);
+  let call; try { call = peer.call(pid(n), r.stream, { metadata: { video: r.video, cid } }); } catch (e) { stopStream(r.stream); toast('No se pudo iniciar la llamada.'); return; }
+  cur = { n, cid, video: r.video, call, local: r.stream, state: 'calling', camOn: r.video, micOn: true, facing: 'user', ringing: false };
+  attachCall(call); showCall(); ring('back');
+  const reach = connOpen(n);
+  if (!reach) { cur.pushed = true; pushTo(n, 'call', cur.video); }
+  else cur.pushT = setTimeout(() => { if (cur && cur.cid === cid && cur.state === 'calling' && !cur.ringing && !cur.pushed) { cur.pushed = true; pushTo(cur.n, 'call', cur.video); } }, 6000);
+  cur.ringTimer = setTimeout(() => {
+    if (cur && cur.state === 'calling') { const m = cur.n, c = cur.cid, mv = cur.video, mp = cur.pushed && !cur.ringing; sendSig(m, { t: 'cancel', cid: c }); if (mp) pushTo(m, 'missed', mv); addSys(m, '📞 Llamada sin respuesta'); finishCall(`${m} no contestó.`); }
+  }, reach ? 45000 : 60000);
+}
+function attachCall(call) {
+  call.on('stream', rs => {
+    if (!cur || cur.call !== call || (cur.state === 'active' && cur.remote === rs)) return;
+    cur.remote = rs; cur.state = 'active'; if (!cur.t0) cur.t0 = Date.now();
+    stopRing(); clearTimeout(cur.ringTimer); bindRemote(rs); startWake(); watchIce(call); updateCallUI();
+  });
+  call.on('close', () => { if (cur && cur.call === call) finishCall('La llamada terminó.'); });
+  call.on('error', () => { if (cur && cur.call === call) finishCall('Error en la llamada.'); });
+}
+function watchIce(call) {
+  const pc = call.peerConnection; if (!pc) return;
+  pc.addEventListener('iceconnectionstatechange', () => {
+    if (!cur || cur.call !== call) return;
+    const s = pc.iceConnectionState;
+    if (s === 'disconnected') { clearTimeout(cur.lost); cur.lostNote = 'Reconectando…'; cur.lost = setTimeout(() => { if (cur && cur.call === call) finishCall('Se perdió la conexión.'); }, 15000); updateCallUI(); }
+    else if (s === 'connected' || s === 'completed') { clearTimeout(cur.lost); cur.lostNote = ''; updateCallUI(); }
+    else if (s === 'failed' || s === 'closed') finishCall('Se perdió la conexión.');
+  });
+}
+function bindRemote(rs) {
+  const v = $('#rv'); v.srcObject = rs; v.muted = false;
+  const p = v.play(); if (p && p.catch) p.catch(() => $('#tapAudio').classList.remove('hidden'));
+}
+function showCall() {
+  $('#call').classList.remove('hidden');
+  const a = $('#cAv'); a.textContent = cur.n.charAt(0).toUpperCase(); a.style.background = colorOf(cur.n);
+  $('#lv').srcObject = cur.local; $('#rv').srcObject = null; $('#tapAudio').classList.add('hidden');
+  clearInterval(timerInt); timerInt = setInterval(updateCallUI, 1000);
+  try { history.pushState({ v: 'call' }, ''); } catch (e) {}
+  updateCallUI();
+}
+function updateCallUI() {
+  if (!cur) return; const c = cur;
+  const rvOn = c.state === 'active' && c.remote && c.remote.getVideoTracks().length > 0 && c.remoteCam !== false;
+  $('#rv').classList.toggle('off', !rvOn);
+  $('#cMid').classList.toggle('hidden', !!rvOn); $('#cTop').classList.toggle('hidden', !rvOn);
+  $('#cName').textContent = c.n; $('#cName2').textContent = c.n;
+  const dur = c.t0 ? fmtDur(Date.now() - c.t0) : '';
+  let note;
+  if (c.lostNote) note = c.lostNote;
+  else if (c.state === 'calling') note = c.ringing ? 'Sonando…' : 'Llamando…';
+  else if (c.state === 'connecting') note = 'Conectando…';
+  else note = dur;
+  $('#cNote').textContent = note; $('#cTimer').textContent = dur;
+  $('#cAv').classList.toggle('ring', c.state !== 'active');
+  const hasV = c.local.getVideoTracks().length > 0;
+  $('#lv').classList.toggle('hidden', !(hasV && c.camOn)); $('#lv').classList.toggle('mirror', c.facing === 'user');
+  $('#bCam').classList.toggle('hidden', !hasV); $('#bFlip').classList.toggle('hidden', !(hasV && c.camOn));
+  $('#bMic').classList.toggle('on', !c.micOn); $('#bCam').classList.toggle('on', !c.camOn);
+  setIcon('#bMic', c.micOn ? 'mic' : 'micOff'); setIcon('#bCam', c.camOn ? 'video' : 'videoOff');
+  $('#bMic').setAttribute('aria-label', c.micOn ? 'Silenciar micrófono' : 'Activar micrófono');
+}
+function finishCall(msg, notifyPeer) {
+  if (!cur) return;
+  const c = cur; cur = null;
+  clearTimeout(c.ringTimer); clearTimeout(c.lost); clearTimeout(c.pushT); clearTimeout(c.retryT); clearInterval(timerInt); stopRing(); releaseWake();
+  if (notifyPeer) sendSig(c.n, { t: 'hangup', cid: c.cid });
+  try { c.call.close(); } catch (e) {}
+  stopStream(c.local);
+  if (c.t0) addSys(c.n, `${c.video ? '🎥' : '📞'} Llamada de ${fmtDur(Date.now() - c.t0)}`);
+  const rv = $('#rv'); rv.srcObject = null; $('#lv').srcObject = null;
+  $('#call').classList.add('hidden'); $('#tapAudio').classList.add('hidden');
+  if (msg) toast(msg);
+}
+function hangupClick() {
+  if (!cur) return;
+  if (cur.state === 'active') finishCall(null, true);
+  else { const n = cur.n, cid = cur.cid; sendSig(n, { t: 'cancel', cid }); if (cur.pushed && !cur.ringing) pushTo(n, 'missed', cur.video); addSys(n, '📞 Llamada cancelada'); finishCall(null, false); }
+}
+function toggleMic() { if (!cur) return; cur.micOn = !cur.micOn; cur.local.getAudioTracks().forEach(t => { t.enabled = cur.micOn; }); updateCallUI(); }
+function toggleCam() {
+  if (!cur) return; const vt = cur.local.getVideoTracks()[0]; if (!vt) return;
+  cur.camOn = !cur.camOn; vt.enabled = cur.camOn;
+  sendSig(cur.n, { t: 'cam', on: cur.camOn, cid: cur.cid }); updateCallUI();
+}
+async function flipCam() {
+  if (!cur) return; const c = cur, old = c.local.getVideoTracks()[0]; if (!old) return;
+  const want = c.facing === 'user' ? 'environment' : 'user';
+  old.stop(); let nt = null, used = null;
+  for (const f of [want, c.facing]) {
+    try { const s = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { exact: f }, width: { ideal: 640 }, height: { ideal: 480 } } }); nt = s.getVideoTracks()[0]; used = f; break; } catch (e) {}
+  }
+  if (!cur || cur !== c) { if (nt) nt.stop(); return; }
+  if (!nt) { toast('No pude cambiar la cámara.'); finishCall('Se perdió la cámara.', true); return; }
+  try {
+    const sender = c.call.peerConnection.getSenders().find(x => x.track && x.track.kind === 'video');
+    if (sender) await sender.replaceTrack(nt);
+  } catch (e) {}
+  c.local.removeTrack(old); c.local.addTrack(nt); nt.enabled = c.camOn; c.facing = used;
+  if (used !== want) toast('No hay otra cámara disponible.');
+  $('#lv').srcObject = c.local; updateCallUI();
+}
+
+function onIncomingCall(call) {
+  const n = nameByPid(call.peer), meta = call.metadata || {};
+  if (!n || n === cfg.me) { try { call.close(); } catch (e) {} return; }
+  const cid = typeof meta.cid === 'string' ? meta.cid : '';
+  if (cancelled.has(cid)) { try { call.close(); } catch (e) {} return; }
+  if (cid && inc && inc.n === n && inc.cid === cid) { const old = inc.call; inc.call = call; try { old.close(); } catch (e) {} return; }
+  if (cur || inc) { sendSig(n, { t: 'busy', cid }); try { call.close(); } catch (e) {} return; }
+  const video = !!meta.video;
+  inc = { n, call, video, cid };
+  sendSig(n, { t: 'ringing', cid });
+  $('#iAv').textContent = n.charAt(0).toUpperCase(); $('#iAv').style.background = colorOf(n);
+  $('#iName').textContent = n; $('#iKind').textContent = video ? 'Videollamada entrante…' : 'Llamada entrante…';
+  $('#incoming').classList.remove('hidden');
+  ring('in'); notify(`${n} te está llamando`, video ? 'Videollamada' : 'Llamada', 'call');
+  inc.timer = setTimeout(() => dropIncoming(true), 50000);
+}
+function dropIncoming(missed) {
+  if (!inc) return; const i = inc; inc = null;
+  clearTimeout(i.timer); stopRing(); $('#incoming').classList.add('hidden');
+  try { i.call.close(); } catch (e) {}
+  if (missed) { addSys(i.n, `${i.video ? '🎥' : '📞'} Llamada perdida`); notify(i.n, 'Llamada perdida', 'call'); }
+}
+async function acceptIncoming() {
+  if (!inc) return; const i = inc; stopRing(); clearTimeout(i.timer);
+  if (!navigator.mediaDevices) { toast('Necesitas abrir la app desde https://'); declineIncoming(); return; }
+  let r; try { r = await getMediaWithFallback(i.video); } catch (e) { mediaError(e); declineIncoming(); return; }
+  if (inc !== i) { stopStream(r.stream); return; } // la persona colgó mientras aceptabas
+  inc = null; $('#incoming').classList.add('hidden');
+  cur = { n: i.n, cid: i.cid, video: i.video, call: i.call, local: r.stream, state: 'connecting', camOn: r.video, micOn: true, facing: 'user' };
+  try { i.call.answer(r.stream); } catch (e) { finishCall('No se pudo contestar.'); return; }
+  attachCall(i.call); showCall();
+}
+function declineIncoming() {
+  if (!inc) return; const i = inc;
+  sendSig(i.n, { t: 'decline', cid: i.cid }); addSys(i.n, '📞 Rechazaste la llamada'); dropIncoming(false);
+}
+function callSignal(n, d) {
+  const same = cur && cur.n === n && cur.cid === d.cid;
+  switch (d.t) {
+    case 'ringing': if (same && cur.state === 'calling') { cur.ringing = true; updateCallUI(); } break;
+    case 'cancel':
+      if (inc && inc.n === n && inc.cid === d.cid) dropIncoming(true);
+      else if (typeof d.cid === 'string') cancelled.add(d.cid);
+      break;
+    case 'decline': if (same && cur.state === 'calling') { addSys(n, '📞 Llamada rechazada'); finishCall(`${n} no puede contestar ahora.`); } break;
+    case 'busy': if (same && cur.state === 'calling') { addSys(n, '📞 Ocupado'); finishCall(`${n} está en otra llamada.`); } break;
+    case 'hangup': if (same) finishCall(`${n} colgó.`); break;
+    case 'cam': if (same) { cur.remoteCam = !!d.on; updateCallUI(); } break;
+  }
+}
+
+/* ───────── avisos push: llamadas con la app cerrada ───────── */
+const PUSH_API = '/.netlify/functions/push';
+const pushOk = () => 'serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window && location.protocol === 'https:';
+const b64ToBytes = s => { const r = atob((s + '='.repeat((4 - s.length % 4) % 4)).replace(/-/g, '+').replace(/_/g, '/')); return Uint8Array.from(r, c => c.charCodeAt(0)); };
+async function pushPost(body) {
+  const r = await fetch(PUSH_API, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ gid, ...body }), keepalive: true });
+  return r.json();
+}
+async function setupPush() {
+  if (!cfg || !gid || !pushOk() || Notification.permission !== 'granted') return;
+  try {
+    const reg = await navigator.serviceWorker.ready;
+    const key = (await (await fetch(PUSH_API, { cache: 'no-store' })).text()).trim();
+    if (!/^[A-Za-z0-9_-]{80,}$/.test(key)) return;
+    let sub = await reg.pushManager.getSubscription();
+    if (!sub) sub = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: b64ToBytes(key) });
+    await pushPost({ action: 'register', name: slug(cfg.me), sub: sub.toJSON() });
+  } catch (e) { console.warn('push', e); }
+}
+function pushTo(n, kind, video) {
+  if (!gid) return;
+  pushPost({ action: kind, to: slug(n), from: cfg.me, video: !!video })
+    .then(r => { if (kind === 'call' && r && r.reason === 'nosub') toast(`${n} todavía no activó los avisos de llamada.`); })
+    .catch(() => {});
+}
+function retryCall() {
+  const c0 = cur; if (!c0 || c0.state !== 'calling') return;
+  clearTimeout(c0.retryT);
+  c0.retryT = setTimeout(() => {
+    if (cur !== c0 || c0.state !== 'calling' || c0.ringing) return;
+    if (!peer || !peer.open) { retryCall(); return; }
+    try {
+      const old = c0.call;
+      c0.call = peer.call(pid(c0.n), c0.local, { metadata: { video: c0.video, cid: c0.cid } });
+      attachCall(c0.call); try { old.close(); } catch (e) {}
+    } catch (e) { retryCall(); }
+  }, 3000);
+}
+function refreshPushBox() {
+  const box = $('#pushBox');
+  if (!pushOk() || Notification.permission === 'granted') { box.classList.add('hidden'); return; }
+  const denied = Notification.permission === 'denied';
+  box.classList.remove('hidden'); $('#btnPush').classList.toggle('hidden', denied);
+  $('#pushTxt').textContent = denied ? 'Los avisos están bloqueados. Actívalos para este sitio en los ajustes del navegador o del teléfono.' : 'Actívalos para que te suene una notificación cuando te llamen, aunque la app esté cerrada.';
+}
+async function enablePush() { try { await Notification.requestPermission(); } catch (e) {} refreshPushBox(); await setupPush(); }
+
+/* ───────── ajustes / instalación ───────── */
+function openSettings() {
+  $('#setMe').textContent = `Eres ${cfg.me}. Grupo de: ${cfg.members.join(', ')}.`;
+  $('#setLink').value = inviteLink();
+  $('#setIce').value = cfg.ice && cfg.ice.length ? JSON.stringify(cfg.ice) : '';
+  $('#iceErr').textContent = '';
+  const ok = 'Notification' in window ? Notification.permission : 'denied';
+  $('#setNotif').textContent = !('Notification' in window) ? 'Avisos no disponibles en este navegador' : ok === 'granted' ? 'Avisos activados ✓' : ok === 'denied' ? 'Avisos bloqueados (cámbialo en el navegador)' : 'Activar avisos';
+  $('#settings').classList.remove('hidden');
+}
+function saveIce() {
+  const raw = $('#setIce').value.trim(); let arr = [];
+  if (raw) {
+    try { arr = JSON.parse(raw); if (!Array.isArray(arr) || !arr.every(x => x && (typeof x.urls === 'string' || Array.isArray(x.urls)))) throw 0; }
+    catch (e) { $('#iceErr').textContent = 'Formato no válido. Debe ser una lista JSON con "urls".'; return; }
+  }
+  if (cur || inc) { $('#iceErr').textContent = 'Termina la llamada antes de reconectar.'; return; }
+  cfg.ice = arr; store.set('fam.cfg', cfg); $('#settings').classList.add('hidden'); toast('Reconectando…'); startPeer();
+}
+function leaveGroup() {
+  if (!confirm('¿Salir del grupo en este dispositivo? Se borrarán los mensajes guardados aquí.')) return;
+  cfg.members.forEach(n => store.del(KEY(n))); store.del('fam.cfg'); store.del('fam.inv');
+  try { peer && peer.destroy(); } catch (e) {}
+  location.href = location.pathname;
+}
+
+window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); deferredInstall = e; refreshInstallBox(); });
+window.addEventListener('appinstalled', () => { deferredInstall = null; refreshInstallBox(); toast('¡Instalada!'); });
+function refreshInstallBox() {
+  const standalone = matchMedia('(display-mode: standalone)').matches || navigator.standalone;
+  const ios = /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  const box = $('#installBox');
+  if (standalone) { box.classList.add('hidden'); return; }
+  if (deferredInstall) { box.classList.remove('hidden'); $('#btnInstall').classList.remove('hidden'); $('#installTxt').textContent = 'Ábrela como una app, sin la barra del navegador.'; }
+  else if (ios) { box.classList.remove('hidden'); $('#btnInstall').classList.add('hidden'); $('#installTxt').textContent = 'En iPhone/iPad: toca el botón Compartir de Safari y elige “Añadir a pantalla de inicio”. Es necesario para recibir llamadas con la app cerrada.'; }
+  else box.classList.add('hidden');
+}
+
+/* ───────── arranque ───────── */
+async function enterApp() {
+  history.replaceState(null, '', location.pathname + location.search);
+  await computeIds();
+  showView('home'); renderHome(); renderStatus(); refreshInstallBox();
+  startPeer(); refreshPushBox(); setupPush();
+}
+
+function bind() {
+  paintIcons();
+  $('#btnCreate').onclick = () => {
+    const me = cleanName($('#inMe').value), oth = $('#inOthers').value.split(',').map(cleanName).filter(Boolean);
+    const err = validateMembers(me, oth); $('#setupErr').textContent = err; if (err) return;
+    cfg = { code: genCode(), members: [me, ...oth], me, ice: [] }; store.set('fam.cfg', cfg); store.del('fam.inv'); enterApp();
+  };
+  $('#btnLink').onclick = () => {
+    const inv = parseInvite($('#inLink').value.trim());
+    if (!inv) { $('#linkErr').textContent = 'Ese enlace no es válido. Pídelo de nuevo.'; return; }
+    $('#linkErr').textContent = ''; showJoin(inv);
+  };
+  $('#chip').onclick = () => { if (status !== 'online') startPeer(); };
+  $('#btnSettings').onclick = openSettings;
+  $('#setClose').onclick = () => $('#settings').classList.add('hidden');
+  $('#settings').addEventListener('click', e => { if (e.target.id === 'settings') $('#settings').classList.add('hidden'); });
+  $('#btnShare').onclick = shareLink; $('#setShare').onclick = shareLink;
+  $('#btnCopy').onclick = copyLink; $('#setCopy').onclick = copyLink;
+  $('#btnInvDone').onclick = () => { store.set('fam.inv', true); renderHome(); };
+  $('#btnInstall').onclick = async () => { if (!deferredInstall) return; deferredInstall.prompt(); try { await deferredInstall.userChoice; } catch (e) {} deferredInstall = null; refreshInstallBox(); };
+  $('#btnPush').onclick = enablePush;
+  $('#setNotif').onclick = async () => { if ('Notification' in window) { try { await Notification.requestPermission(); } catch (e) {} } refreshPushBox(); setupPush(); openSettings(); };
+  $('#setIceSave').onclick = saveIce; $('#setLeave').onclick = leaveGroup;
+  $('#setClear').onclick = () => { if (!confirm('¿Borrar todos los mensajes de este dispositivo?')) return; cfg.members.forEach(n => { hist[n] = []; store.del(KEY(n)); }); renderHome(); if (chatWith) renderChat(true); toast('Mensajes borrados'); };
+  $('#btnBack').onclick = () => { if (history.state && history.state.v === 'chat') history.back(); else closeChat(); };
+  $('#chCall').onclick = () => startCall(chatWith, false); $('#chVid').onclick = () => startCall(chatWith, true);
+  $('#btnSend').onpointerdown = e => e.preventDefault(); $('#btnSend').onclick = doSend;
+  $('#msgIn').addEventListener('input', autoGrow);
+  $('#msgIn').addEventListener('keydown', e => { if (e.key === 'Enter' && !e.shiftKey && !e.isComposing && matchMedia('(pointer:fine)').matches) { e.preventDefault(); doSend(); } });
+  $('#bMic').onclick = toggleMic; $('#bCam').onclick = toggleCam; $('#bFlip').onclick = flipCam; $('#bEnd').onclick = hangupClick;
+  $('#bAccept').onclick = acceptIncoming; $('#bDecline').onclick = declineIncoming;
+  $('#tapAudio').onclick = () => { $('#rv').play().catch(() => {}); $('#tapAudio').classList.add('hidden'); };
+  window.addEventListener('popstate', () => {
+    if (cur || inc) { try { history.pushState({ v: 'call' }, ''); } catch (e) {} return; }
+    if (view === 'chat') closeChat();
+  });
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden || !cfg) return;
+    if (!peer || peer.destroyed) startPeer(); else if (peer.disconnected) scheduleReconnect(peer, 100);
+    pollConnections(); if (cur) startWake();
+    if (chatWith) { load(chatWith).forEach(m => { m.new = false; }); save(chatWith); updateBadge(); }
+  });
+  window.addEventListener('online', () => { if (!cfg) return; if (!peer || peer.destroyed) startPeer(); else if (peer.disconnected) scheduleReconnect(peer, 300); });
+  setInterval(pollConnections, 5000);
+}
+
+async function boot() {
+  bind();
+  const secure = window.isSecureContext && !!window.crypto && !!crypto.subtle;
+  if (!secure) { $('#insecure').classList.remove('hidden'); $('#insecure2').classList.remove('hidden'); }
+  if ('serviceWorker' in navigator && location.protocol.startsWith('http') && secure) navigator.serviceWorker.register('sw.js').catch(() => {});
+  if (!secure) { showView('setup'); $('#createBox').classList.add('hidden'); return; }
+  cfg = store.get('fam.cfg', null);
+  const inv = parseInvite(location.hash);
+  if (cfg && cfg.members && cfg.me) { enterApp(); }
+  else if (inv) showJoin(inv);
+  else showView('setup');
+}
+boot();
+})();
+</script>
+</body>
+</html>
